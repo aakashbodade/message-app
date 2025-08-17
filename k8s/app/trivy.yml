@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trivy-app
+  namespace: prod-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trivy-app
+      env: prod
+  template:
+    metadata:
+      labels:
+        app: trivy-app
+        env: prod
+    spec:
+      containers:
+        - name: trivy
+          image: aquasec/trivy:latest
+          args: ["server", "--listen", "0.0.0.0:4000"]
+          ports:
+            - containerPort: 4000
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: trivy-svc
+  namespace: prod-ns
+spec:
+  selector:
+    app: trivy-app
+    env: prod
+  type: ClusterIP
+  ports:
+    - port: 4000        # Cluster IP port
+      targetPort: 4000  # Pod container port
+      protocol: TCP
+...

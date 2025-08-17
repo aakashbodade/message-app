@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-statefulset
+  namespace: prod-ns
+  labels:
+    env: prod
+    app: mysql
+spec:
+  replicas: 1  # Changed from 2 to 1 for MySQL
+  selector:
+    matchLabels:
+      env: prod
+      app: mysql
+  serviceName: mysql-svc  # Should match service name
+  template:
+    metadata:
+      labels:
+        env: prod
+        app: mysql
+    spec:
+      containers:
+      - name: mysql-container
+        image: mysql:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sql-secret
+              key: MYSQL_PASSWORD
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: db-configmap
+              key: MYSQL_DB
+        volumeMounts:
+        - name: mysql-initdb
+          mountPath: /docker-entrypoint-initdb.d
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-initdb
+        configMap:
+          name: db-configmap
+          items:
+          - key: init.sql
+            path: init.sql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi

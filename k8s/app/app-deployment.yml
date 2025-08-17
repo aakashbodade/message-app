@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prod-ns
+  name : appdeployment
+  labels:
+    release: monitor-v1
+    env: prod
+    app: flaskapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flaskapp
+      env: prod
+  template:
+    metadata:
+      name: flaskapp-pod
+      labels:
+        env: prod
+        app: flaskapp
+      namespace: prod-ns
+    spec:
+      containers:
+      - name: flaskapp-container
+        image: aakashbodade/message-app:v3
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: metrics
+        # - containerPort: 8081
+        #   name: metrics
+        env:
+          - name: MYSQL_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: db-configmap
+                key: MYSQL_HOST
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: sql-secret
+                key: MYSQL_PASSWORD
+          - name: MYSQL_USER
+            valueFrom:
+              configMapKeyRef:
+                name: db-configmap
+                key: MYSQL_USER
+          - name: MYSQL_DB
+            valueFrom:
+              configMapKeyRef:
+                name: db-configmap
+                key: MYSQL_DB
+      

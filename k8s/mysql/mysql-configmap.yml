@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-configmap
+  namespace: prod-ns
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS messages;
+    USE messages;
+    CREATE TABLE IF NOT EXISTS messages (
+      id INT AUTO_INCREMENT PRIMARY KEY, 
+      message TEXT
+    );
+
+  MYSQL_DB: messages
+  MYSQL_HOST: mysql-svc.prod-ns.svc.cluster.local
+  MYSQL_PORT: "3306"
+  MYSQL_USER: root
